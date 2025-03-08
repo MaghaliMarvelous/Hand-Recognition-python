@@ -52,7 +52,7 @@ while cap.isOpened():
             mp_drawing.draw_landmarks(processed_frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 
             landmarks = hand_landmarks.landmark
-            fingers = [8, 12, 16, 20]
+            fingers = [8, 12, 16, 20]  # Ujung jari telunjuk, tengah, manis, kelingking
             thumb_tip = landmarks[4]
             thumb_base = landmarks[2]
 
@@ -61,23 +61,30 @@ while cap.isOpened():
             thumb_x, thumb_y = int(thumb_tip.x * w), int(thumb_tip.y * h)
             middle_x, middle_y = int(landmarks[12].x * w), int(landmarks[12].y * h)
 
+            # Cek apakah semua jari menutup
+            fingers_closed = all(landmarks[f].y > landmarks[f - 2].y for f in fingers)
+            thumb_closed = thumb_tip.y > thumb_base.y
+
+            # Cek apakah semua jari terbuka
             fingers_up = all(landmarks[f].y < landmarks[f - 2].y for f in fingers)
-            thumb_up = thumb_tip.y < thumb_base.y  
+            thumb_up = thumb_tip.y < thumb_base.y
 
             if time.time() - last_action_time > 0.3:  
-                if fingers_up and thumb_up:
+                if fingers_closed and thumb_closed:  # Tangan menutup
+                    gesture_text = "TUTUP"
+                elif fingers_up and thumb_up:  # Telapak terbuka
                     pyautogui.press("up")
                     gesture_text = "TELAPAK TERBUKA - ATAS"
-                elif index_y < middle_y:
+                elif index_y < middle_y:  # Jari telunjuk ke atas
                     pyautogui.press("up")
                     gesture_text = "ATAS"
-                elif index_y > thumb_y:
+                elif index_y > thumb_y:  # Jari telunjuk ke bawah
                     pyautogui.press("down")
                     gesture_text = "BAWAH"
-                elif index_x < thumb_x:
+                elif index_x < thumb_x - 50:  # Jari telunjuk ke kiri
                     pyautogui.press("left")
                     gesture_text = "KIRI"
-                elif index_x > thumb_x:
+                elif index_x > thumb_x + 50:  # Jari telunjuk ke kanan
                     pyautogui.press("right")
                     gesture_text = "KANAN"
 
